@@ -1,50 +1,65 @@
-# frida-core
+# Building Frida-Core
 
-Frida core library intended for static linking into bindings.
+This guide walks through the steps to build Frida-core for Android ARM64.
 
-- Lets you inject your own JavaScript instrumentation code into other processes,
-  optionally with your own [C code][] for performance-sensitive bits.
-- Acts as a logistics layer that packages up [GumJS][] into a shared library.
-- Provides a two-way communication channel for talking to your scripts,
-  if needed, and later unload them.
-- Also lets you enumerate installed apps, running processes, and connected
-  devices.
-- Written in [Vala][], with OS-specific glue code in C/Objective-C/asm.
+## Prerequisites
 
-## Binaries
+Ensure you have the necessary development tools installed on your macOS system.
 
-Typically used through one of the available language bindings:
+## Build Steps
 
-- [Python][]
-- [Node.js][]
-- [.NET][]
-- [Swift][]
-- [Qml][]
+### 1. Find Code Signing Identity
 
-E.g.:
+First, locate your available code signing identities:
 
-```console
-$ pip install frida-tools # CLI tools
-$ pip install frida # Python bindings
-$ npm install frida # Node.js bindings
+```bash
+security find-identity -v -p codesigning
 ```
 
-Or, for static linking into your own project written in a C-compatible language,
-download a devkit from the Frida [releases][] page.
+This will list all available code signing certificates. Find the one you want to use and note its identifier.
 
-## Internals
+### 2. Export the Certificate ID
 
-For a higher level view of the internals, check out the [architecture diagram][]
-and its links to the different parts of the codebase.
+Set the `MACOS_CERTID` environment variable with your certificate identifier:
 
+```bash
+export MACOS_CERTID="<your-certificate-id>"
+```
 
-[C code]: https://frida.re/docs/javascript-api/#cmodule
-[Vala]: https://wiki.gnome.org/Projects/Vala
-[GumJS]: https://github.com/frida/frida-gum
-[Python]: https://github.com/frida/frida-python
-[Node.js]: https://github.com/frida/frida-node
-[.NET]: https://github.com/frida/frida-clr
-[Swift]: https://github.com/frida/frida-swift
-[Qml]: https://github.com/frida/frida-qml
-[releases]: https://github.com/frida/frida/releases
-[architecture diagram]: https://frida.re/docs/hacking/
+Replace `<your-certificate-id>` with the actual identifier from step 1.
+
+### 3. Export Android NDK Root
+
+Set the `ANDROID_NDK_ROOT` environment variable to your r25 NDK installation path:
+
+```bash
+export ANDROID_NDK_ROOT=/Users/'<abc>'/Library/Android/sdk/ndk/25.2.9519653
+```
+
+### 4. Configure for Android ARM64
+
+Run the configure script targeting Android ARM64:
+
+```bash
+./configure --host=android-arm64
+```
+
+### 5. Build
+
+Compile Frida-core using make:
+
+```bash
+make
+```
+
+This may take several minutes depending on your system.
+
+## Output
+
+Once the build completes successfully, the compiled frida-server binary will be located at:
+
+```
+build/server/frida-server
+```
+
+You can now use this binary on your Android ARM64 device.
